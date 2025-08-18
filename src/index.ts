@@ -1,31 +1,44 @@
-import { Elysia } from "elysia";
+import { Elysia, ERROR_CODE } from "elysia";
 import type { Server } from "elysia/universal/server";
 import chalk from "chalk";
-import { CreateCache, SetupBuilder } from "./builder/Builder";
+import { CreateCache, SetupBuilder } from "./Builder/Builder";
 import { redis } from "bun";
 import { readFileSync } from "fs";
 import path from "path";
+import { ApiEndpoint } from "./Api";
+import { renderToReadableStream } from "react-dom/server";
+import { _404 } from "./ErrorPages/404";
+import { ErrorPages } from "./Controllers/ErrorPages";
 
 CreateCache();
 SetupBuilder();
 
 new Elysia()
-  .all(
-    "/:page?",
-    async () =>
-      new Response(
-        process.env.USE_REDIS === "true"
-          ? await redis.get("react-code")
-          : readFileSync(
-              path.join(process.cwd(), "build", "bundle.html")
-            ).toString() || "",
+  .use(ApiEndpoint)
+  .all("/:page?", async () => {
+    if (process.env.USE_REDIS)
+      return new Response(await redis.get("react-code"), {
+        headers: {
+          "Content-Type": "text/html",
+        },
+      });
+    else if (global?.bundle)
+      return new Response(global?.bundle, {
+        headers: {
+          "Content-Type": "text/html",
+        },
+      });
+    else
+      return new Response(
+        readFileSync(path.join(process.cwd(), "build", "bundle.html")),
         {
           headers: {
             "Content-Type": "text/html",
           },
         }
-      )
-  )
+      );
+  })
+  .onError((params) => ErrorPages(params))
   .listen(3000, (server: Server) => {
     console.log(
       chalk.green`---------------------------------------------------`
