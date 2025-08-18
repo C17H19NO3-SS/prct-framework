@@ -2,6 +2,7 @@ import path from "path";
 import { redis } from "bun";
 import { renderToReadableStream } from "react-dom/server";
 import { build } from "esbuild";
+import { existsSync, mkdir, mkdirSync, writeFileSync } from "fs";
 
 export const SetupBuilder = async () =>
   setInterval(CreateCache, 30 * 60 * 1000);
@@ -20,6 +21,10 @@ export const CreateCache = async () => {
             bundle: true,
             write: false,
             format: "esm",
+            minify: true,
+            minifySyntax: true,
+            minifyIdentifiers: true,
+            minifyWhitespace: true,
           })
         ).outputFiles.map((v, i) => (
           <script key={i} type="module">
@@ -32,7 +37,18 @@ export const CreateCache = async () => {
 
   const code = await renderToReadableStream(<PageContent />);
 
-  await redis.set("react-code", (await code.getReader().read()).value);
+  if (process.env.USE_REDIS === "true") {
+    await redis.set("react-code", (await code.getReader().read()).value);
 
-  await redis.expire("react-code", 3600);
+    await redis.expire("react-code", 3600);
+  } else {
+    const buildPath = path.join(process.cwd(), "build");
+
+    if (!existsSync(buildPath)) mkdirSync(buildPath);
+
+    writeFileSync(
+      path.join(buildPath, "bundle.html"),
+      (await code.getReader().read()).value
+    );
+  }
 };

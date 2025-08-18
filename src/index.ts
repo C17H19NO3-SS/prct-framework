@@ -3,6 +3,8 @@ import type { Server } from "elysia/universal/server";
 import chalk from "chalk";
 import { CreateCache, SetupBuilder } from "./builder/Builder";
 import { redis } from "bun";
+import { readFileSync } from "fs";
+import path from "path";
 
 CreateCache();
 SetupBuilder();
@@ -11,11 +13,18 @@ new Elysia()
   .all(
     "/:page?",
     async () =>
-      new Response((await redis.get("react-code")) || "", {
-        headers: {
-          "Content-Type": "text/html",
-        },
-      })
+      new Response(
+        process.env.USE_REDIS === "true"
+          ? await redis.get("react-code")
+          : readFileSync(
+              path.join(process.cwd(), "build", "bundle.html")
+            ).toString() || "",
+        {
+          headers: {
+            "Content-Type": "text/html",
+          },
+        }
+      )
   )
   .listen(3000, (server: Server) => {
     console.log(
