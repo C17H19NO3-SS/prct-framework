@@ -8,13 +8,15 @@ CreateCache();
 SetupBuilder();
 
 new Elysia()
-  .all("/:page?", async () => {
-    return new Response((await redis.get("react-code")) || "", {
-      headers: {
-        "Content-Type": "text/html",
-      },
-    });
-  })
+  .all(
+    "/:page?",
+    async () =>
+      new Response((await redis.get("react-code")) || "", {
+        headers: {
+          "Content-Type": "text/html",
+        },
+      })
+  )
   .listen(3000, (server: Server) => {
     console.log(
       chalk.green`---------------------------------------------------`

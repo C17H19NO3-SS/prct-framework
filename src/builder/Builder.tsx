@@ -4,7 +4,7 @@ import { renderToReadableStream } from "react-dom/server";
 import { build } from "esbuild";
 
 export const SetupBuilder = async () =>
-  setInterval(CreateCache, 60 * 60 * 1000);
+  setInterval(CreateCache, 30 * 60 * 1000);
 
 export const CreateCache = async () => {
   const PageContent = async (): Promise<React.ReactNode> => (
