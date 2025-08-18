@@ -1,7 +1,3 @@
-Şunu senin için daha teknik, düzenli ve anlaşılır bir şekilde yeniden yazdım 👇
-
----
-
 # Prct Framework
 
 ## Amaç
@@ -33,7 +29,3 @@
 - **Redis ile Performans Artışı:** Yüksek trafikli uygulamalarda düşük gecikme ve hızlı yanıt süresi.
 - **Basit Konfigürasyon:** `.env` üzerinden Redis gibi ek özellikler kolayca açılıp kapatılabilir.
 - **Monolitik Yapılara Uygun:** Tek proje yapısı içerisinde hem frontend hem backend geliştirme imkanı.
-
----
-
-İstersen ben buna bir **"Kurulum & Kullanım" bölümü** de ekleyebilirim, yani `.env` ayarlarının örneği, uygulamayı çalıştırma komutları (`npm run dev` gibi) ve basit bir kullanım senaryosu. Eklememi ister misin?
