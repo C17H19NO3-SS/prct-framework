@@ -1,29 +1,29 @@
-import { Elysia, ERROR_CODE } from "elysia";
-import type { Server } from "elysia/universal/server";
 import chalk from "chalk";
+import path from "path";
+import { Elysia } from "elysia";
 import { CreateCache, SetupBuilder } from "./Builder/Builder";
 import { redis } from "bun";
 import { readFileSync } from "fs";
-import path from "path";
 import { ApiEndpoint } from "./Api";
-import { renderToReadableStream } from "react-dom/server";
 import { _404 } from "./ErrorPages/404";
 import { ErrorPages } from "./Controllers/ErrorPages";
+import { staticPlugin } from "@elysiajs/static";
+import type { Server } from "elysia/universal/server";
 
 CreateCache();
 SetupBuilder();
 
 new Elysia()
   .use(ApiEndpoint)
+  .use(
+    staticPlugin({
+      prefix: "/assets",
+      assets: path.join(process.cwd(), "src", "Static"),
+    })
+  )
   .all("/:page?", async () => {
-    if (process.env.USE_REDIS)
+    if (process.env.USE_REDIS === "true")
       return new Response(await redis.get("react-code"), {
-        headers: {
-          "Content-Type": "text/html",
-        },
-      });
-    else if (global?.bundle)
-      return new Response(global?.bundle, {
         headers: {
           "Content-Type": "text/html",
         },

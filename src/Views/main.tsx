@@ -1,17 +1,13 @@
 import type React from "react";
 
-export const App = ({
-  Scripts,
-}: {
-  Scripts: () => React.ReactNode | React.ReactNode[] | string;
-}): React.ReactNode => (
+export const App = (): React.ReactNode => (
   <html>
     <head>
       <title>Crct | Home</title>
     </head>
     <body>
       <div id="root"></div>
-      <Scripts />
+      <script src="/assets/react.mjs"></script>
     </body>
   </html>
 );
