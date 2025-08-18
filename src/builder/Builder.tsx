@@ -5,39 +5,54 @@ import { build } from "esbuild";
 import { existsSync, mkdirSync, writeFileSync } from "fs";
 import { App } from "../Views/main";
 
-export const SetupBuilder = async () =>
-  setInterval(CreateCache, 30 * 60 * 1000);
+/**
+ * Initializes the builder process.
+ * Refreshes the cache every 30 minutes.
+ */
+export const SetupBuilder = async () => {
+  setInterval(CreateCache, 30 * 60 * 1000); // 30 minutes
+};
 
+/**
+ * Builds the React component and stores it in cache.
+ * - If Redis is enabled, stores it in Redis.
+ * - Otherwise, writes it to the local build directory.
+ */
 export const CreateCache = async () => {
-  const script = (
-    await build({
-      entryPoints: [path.join(process.cwd(), "src", "views", "index.tsx")],
-      bundle: true,
-      write: false,
-      format: "esm",
-      minify: true,
-      minifySyntax: true,
-      minifyIdentifiers: true,
-      minifyWhitespace: true,
-    })
-  ).outputFiles[0]?.text;
+  // Build the client-side React bundle
+  const buildResult = await build({
+    entryPoints: [path.join(process.cwd(), "src", "views", "index.tsx")],
+    bundle: true,
+    write: false,
+    format: "esm",
+    minify: true,
+    minifySyntax: true,
+    minifyIdentifiers: true,
+    minifyWhitespace: true,
+  });
 
+  const bundledScript = buildResult.outputFiles[0]?.text;
+
+  // Save bundled script to the build directory
   writeFileSync(
-    path.join(process.cwd(), "src", "Static", "react.mjs"),
-    script as string
+    path.join(process.cwd(), "build", "react.mjs"),
+    bundledScript as string
   );
 
-  const code = await renderToReadableStream(<App />);
+  // Render the React app with SSR
+  const stream = await renderToReadableStream(<App />);
+  const reader = stream.getReader();
+  const { value: renderedHtml } = await reader.read();
 
   if (process.env.USE_REDIS === "true") {
-    await redis.set("react-code", (await code.getReader().read()).value);
-
-    await redis.expire("react-code", 3600);
+    // Save rendered HTML to Redis
+    await redis.set("react-code", renderedHtml);
+    await redis.expire("react-code", 3600); // 1 hour expiration
   } else {
+    // Save rendered HTML as a file in the build directory
     const buildPath = path.join(process.cwd(), "build");
-
     if (!existsSync(buildPath)) mkdirSync(buildPath);
-    const text = (await code.getReader().read()).value;
-    writeFileSync(path.join(buildPath, "bundle.html"), text);
+
+    writeFileSync(path.join(buildPath, "bundle.html"), renderedHtml);
   }
 };

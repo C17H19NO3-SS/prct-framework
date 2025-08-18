@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import React from "react";
-import { createRoot } from "react-dom/client";
+import { createRoot, hydrateRoot } from "react-dom/client";
 
 const PageComponent = (): React.ReactNode => {
   const [state, setState] = useState("test");
@@ -13,6 +13,4 @@ const PageComponent = (): React.ReactNode => {
   return <div>{state}</div>;
 };
 
-createRoot(document.getElementById("root") as HTMLElement).render(
-  <PageComponent />
-);
+hydrateRoot(document.getElementById("root") as HTMLElement, <PageComponent />);
