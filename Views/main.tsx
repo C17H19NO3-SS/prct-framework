@@ -7,7 +7,7 @@ export const App = (): React.ReactNode => (
     </head>
     <body>
       <div id="root"></div>
-      <script src="/assets/react.mjs"></script>
+      <script src="/assets/react.js"></script>
     </body>
   </html>
 );

@@ -1,6 +1,6 @@
 import { type ErrorHandler } from "elysia";
 import { renderToReadableStream } from "react-dom/server";
-import { _404 } from "../ErrorPages/404";
+import { _404 } from "../../ErrorPages/404";
 
 // You can write the API endpoints here.
 export const ErrorPages: ErrorHandler = async ({ code }) => {

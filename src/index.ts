@@ -19,8 +19,16 @@ SetupBuilder();
 new Elysia()
   // Serve the bundled React script
   .get(
-    "/assets/react.mjs",
-    file(path.join(process.cwd(), "build", "react.mjs"))
+    "/assets/react.js",
+    () =>
+      new Response(
+        readFileSync(path.join(process.cwd(), "build", "react.js")),
+        {
+          headers: {
+            "Content-Type": "text/javascript",
+          },
+        }
+      )
   )
 
   // Register API endpoints
@@ -30,7 +38,7 @@ new Elysia()
   .use(
     staticPlugin({
       prefix: "/assets",
-      assets: path.join(process.cwd(), "src", "Static"),
+      assets: path.join(process.cwd(), "Static"),
     })
   )
 

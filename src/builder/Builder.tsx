@@ -2,15 +2,32 @@ import path from "path";
 import { redis } from "bun";
 import { renderToReadableStream } from "react-dom/server";
 import { build } from "esbuild";
-import { existsSync, mkdirSync, writeFileSync } from "fs";
-import { App } from "../Views/main";
+import { existsSync, mkdirSync, watch, writeFileSync } from "fs";
+import { App } from "../../Views/main";
+import chalk from "chalk";
 
 /**
  * Initializes the builder process.
  * Refreshes the cache every 30 minutes.
  */
 export const SetupBuilder = async () => {
-  setInterval(CreateCache, 30 * 60 * 1000); // 30 minutes
+  try {
+    if (process.env.PRCT_ENVIRONMENT === "development") {
+      watch(
+        path.join(process.cwd(), "Views"),
+        {
+          recursive: true,
+        },
+        (event, fn) => {
+          if (event === "change") {
+            console.log(chalk.yellow(`Değiştirilen dosya: ${fn}`));
+            CreateCache();
+          }
+        }
+      );
+    }
+    setInterval(CreateCache, 30 * 60 * 1000); // 30 minutes
+  } catch (error) {}
 };
 
 /**
@@ -21,7 +38,7 @@ export const SetupBuilder = async () => {
 export const CreateCache = async () => {
   // Build the client-side React bundle
   const buildResult = await build({
-    entryPoints: [path.join(process.cwd(), "src", "views", "index.tsx")],
+    entryPoints: [path.join(process.cwd(), "Views", "index.tsx")],
     bundle: true,
     write: false,
     format: "esm",
@@ -35,7 +52,7 @@ export const CreateCache = async () => {
 
   // Save bundled script to the build directory
   writeFileSync(
-    path.join(process.cwd(), "build", "react.mjs"),
+    path.join(process.cwd(), "build", "react.js"),
     bundledScript as string
   );
 
