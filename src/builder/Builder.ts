@@ -51,7 +51,8 @@ export async function viteBuild(options: ViteOptions = {}): Promise<void> {
       base: options.base || "/",
       publicDir: options.publicDir || "public",
       build: {
-        outDir: options.build?.outDir || "dist",
+        outDir:
+          options.build?.outDir || path.join(process.cwd(), "react-build"),
         assetsDir: options.build?.assetsDir || "assets",
         sourcemap: options.build?.sourcemap ?? false,
         minify: options.build?.minify ?? true,
@@ -112,10 +113,7 @@ export async function viteDevServer(
 /**
  * Komut satırından kullanım için yardımcı fonksiyon
  */
-export async function runViteCommand(
-  command: "dev" | "build",
-  options: any = {}
-) {
+export async function runVite(command: "dev" | "build", options: any = {}) {
   switch (command) {
     case "dev":
       await viteDevServer(options);
@@ -135,8 +133,8 @@ if (require.main === module) {
   const command = process.argv[2] as "dev" | "build";
   const port = process.argv[3] ? parseInt(process.argv[3]) : undefined;
 
-  runViteCommand(command, { port }).catch(console.error);
+  runVite(command, { port }).catch(console.error);
 }
 
 // Export all
-export default { viteBuild, viteDevServer, runViteCommand };
+export default { viteBuild, viteDevServer, runVite };

@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+.app {
+  @apply min-h-screen bg-zinc-900 text-gray-200 font-sans flex justify-center items-center;
+}
+
+.app-article {
+  @apply max-w-md mx-auto px-6 text-center;
+}
+
+.app-logo {
+  @apply w-16 h-16 mx-auto mb-8;
+}
+
+.app-link {
+  @apply inline-block mt-8 text-gray-300 hover:text-gray-100 text-sm underline underline-offset-4 transition-colors;
+}
+
+.break-0 {
+  @apply mb-2;
+}
+
+.break-1 {
+  @apply mb-4;
+}

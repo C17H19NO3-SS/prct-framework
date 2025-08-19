@@ -1,11 +1,20 @@
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Routes, Route } from "react-router";
-import "./index.css";
-import { DefaultPage } from "./Pages";
+import {
+  RouterProvider,
+  createMemoryRouter,
+  Route,
+  Routes,
+} from "react-router";
+import { DefaultPage } from "./Pages/home";
+
 createRoot(document.getElementById("root")!).render(
-  <BrowserRouter>
-    <Routes>
-      <Route path="/" element={<DefaultPage />} />
-    </Routes>
-  </BrowserRouter>
+  <RouterProvider
+    router={createMemoryRouter([
+      {
+        path: "/",
+        element: <DefaultPage />,
+        index: true,
+      },
+    ])}
+  />
 );

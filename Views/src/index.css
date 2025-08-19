@@ -1,6 +1,0 @@
-@import "tailwindcss";
-
-body {
-  @apply bg-yellow-500;
-}
- 
