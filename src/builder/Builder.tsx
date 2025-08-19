@@ -1,75 +1,200 @@
+import { build, createServer, type ViteDevServer } from "vite";
 import path from "path";
-import { redis } from "bun";
-import { renderToReadableStream } from "react-dom/server";
-import { build } from "esbuild";
-import { existsSync, mkdirSync, watch, writeFileSync } from "fs";
-import { App } from "../../Views/main";
-import chalk from "chalk";
+
+// =============================================================================
+// TİP TANIMLARI
+// =============================================================================
+
+interface ViteOptions {
+  root?: string;
+  configFile?: string | false;
+  mode?: string;
+  define?: Record<string, any>;
+  plugins?: any[];
+  base?: string;
+  publicDir?: string;
+  build?: {
+    outDir?: string;
+    assetsDir?: string;
+    sourcemap?: boolean;
+    minify?: boolean;
+  };
+}
+
+interface DevServerOptions extends ViteOptions {
+  host?: string | boolean;
+  port?: number;
+  open?: boolean | string;
+  cors?: boolean;
+  strictPort?: boolean;
+}
+
+// =============================================================================
+// FONKSİYON YAKLAŞIMI
+// =============================================================================
 
 /**
- * Initializes the builder process.
- * Refreshes the cache every 30 minutes.
+ * Vite build işlemini başlatır
+ * @param options - Vite build seçenekleri
+ * @returns Promise<void>
  */
-export const SetupBuilder = async () => {
+export async function viteBuild(options: ViteOptions = {}): Promise<void> {
   try {
-    if (process.env.PRCT_ENVIRONMENT === "development") {
-      watch(
-        path.join(process.cwd(), "Views"),
-        {
-          recursive: true,
-        },
-        (event, fn) => {
-          if (event === "change") {
-            console.log(chalk.yellow(`Değiştirilen dosya: ${fn}`));
-            CreateCache();
-          }
-        }
-      );
-    }
-    setInterval(CreateCache, 30 * 60 * 1000); // 30 minutes
-  } catch (error) {}
-};
+    console.log("🔨 Build işlemi başlatılıyor...");
+
+    const buildConfig = {
+      root: options.root || path.join(process.cwd(), "Views"),
+      mode: options.mode || "production",
+      configFile: options.configFile,
+      define: options.define,
+      plugins: options.plugins,
+      base: options.base || "/",
+      publicDir: options.publicDir || "public",
+      build: {
+        outDir: options.build?.outDir || "dist",
+        assetsDir: options.build?.assetsDir || "assets",
+        sourcemap: options.build?.sourcemap ?? false,
+        minify: options.build?.minify ?? true,
+        ...options.build,
+      },
+    };
+
+    await build(buildConfig);
+    console.log("✅ Build işlemi başarıyla tamamlandı!");
+  } catch (error) {
+    console.error("❌ Build işlemi sırasında hata:", error);
+    process.exit(1);
+  }
+}
 
 /**
- * Builds the React component and stores it in cache.
- * - If Redis is enabled, stores it in Redis.
- * - Otherwise, writes it to the local build directory.
+ * Vite development server'ını başlatır
+ * @param options - Dev server seçenekleri
+ * @returns Promise<ViteDevServer>
  */
-export const CreateCache = async () => {
-  // Build the client-side React bundle
-  const buildResult = await build({
-    entryPoints: [path.join(process.cwd(), "Views", "index.tsx")],
-    bundle: true,
-    write: false,
-    format: "esm",
-    minify: true,
-    minifySyntax: true,
-    minifyIdentifiers: true,
-    minifyWhitespace: true,
-  });
+export async function viteDevServer(
+  options: DevServerOptions = {}
+): Promise<ViteDevServer> {
+  try {
+    console.log("🚀 Development server başlatılıyor...");
 
-  const bundledScript = buildResult.outputFiles[0]?.text;
+    const serverConfig = {
+      root: options.root || path.join(process.cwd(), "Views"),
+      mode: options.mode || "development",
+      configFile: options.configFile,
+      define: options.define,
+      plugins: options.plugins,
+      base: options.base || "/",
+      publicDir: options.publicDir || "public",
+      server: {
+        host: options.host || "localhost",
+        port: options.port || 3001,
+        open: options.open ?? false,
+        cors: options.cors ?? true,
+        strictPort: options.strictPort ?? false,
+      },
+    };
 
-  // Save bundled script to the build directory
-  writeFileSync(
-    path.join(process.cwd(), "build", "react.js"),
-    bundledScript as string
-  );
+    const server = await createServer(serverConfig);
+    await server.listen();
 
-  // Render the React app with SSR
-  const stream = await renderToReadableStream(<App />);
-  const reader = stream.getReader();
-  const { value: renderedHtml } = await reader.read();
+    const info = server.config.logger.info;
+    info(`\n  🎉 Development server hazır!`);
+    info(`  ➜  Local:   http://localhost:${server.config.server.port}/`);
 
-  if (process.env.USE_REDIS === "true") {
-    // Save rendered HTML to Redis
-    await redis.set("react-code", renderedHtml);
-    await redis.expire("react-code", 3600); // 1 hour expiration
-  } else {
-    // Save rendered HTML as a file in the build directory
-    const buildPath = path.join(process.cwd(), "build");
-    if (!existsSync(buildPath)) mkdirSync(buildPath);
-
-    writeFileSync(path.join(buildPath, "bundle.html"), renderedHtml);
+    return server;
+  } catch (error) {
+    console.error("❌ Development server başlatılırken hata:", error);
+    process.exit(1);
   }
-};
+}
+
+// =============================================================================
+// CLASS YAKLAŞIMI (OPSİYONEL)
+// =============================================================================
+
+/**
+ * Vite işlemlerini yöneten ana sınıf
+ */
+export class ViteManager {
+  private defaultOptions: ViteOptions;
+  private devServer?: ViteDevServer;
+
+  constructor(defaultOptions: ViteOptions = {}) {
+    this.defaultOptions = {
+      root: process.cwd(),
+      mode: "development",
+      base: "/",
+      publicDir: "public",
+      ...defaultOptions,
+    };
+  }
+
+  /**
+   * Build işlemini başlatır
+   */
+  async build(customOptions: ViteOptions = {}): Promise<void> {
+    const options = { ...this.defaultOptions, ...customOptions };
+    await viteBuild(options);
+  }
+
+  /**
+   * Development server'ını başlatır
+   */
+  async startDevServer(
+    customOptions: DevServerOptions = {}
+  ): Promise<ViteDevServer> {
+    const options = { ...this.defaultOptions, ...customOptions };
+    this.devServer = await viteDevServer(options);
+    return this.devServer;
+  }
+
+  /**
+   * Development server'ını durdurur
+   */
+  async stopDevServer(): Promise<void> {
+    if (this.devServer) {
+      await this.devServer.close();
+      console.log("🛑 Development server durduruldu");
+    }
+  }
+
+  /**
+   * Server'ın çalışıp çalışmadığını kontrol eder
+   */
+  isDevServerRunning(): boolean {
+    return !!this.devServer && !!this.devServer.httpServer?.listening;
+  }
+}
+
+/**
+ * Komut satırından kullanım için yardımcı fonksiyon
+ */
+export async function runViteCommand(
+  command: "dev" | "build",
+  options: any = {}
+) {
+  switch (command) {
+    case "dev":
+      await viteDevServer(options);
+      break;
+    case "build":
+      await viteBuild(options);
+      break;
+    default:
+      console.error(
+        `Geçersiz komut: ${command}. Kullanılabilir komutlar: dev, build`
+      );
+  }
+}
+
+// Komut satırından çalıştırma
+if (require.main === module) {
+  const command = process.argv[2] as "dev" | "build";
+  const port = process.argv[3] ? parseInt(process.argv[3]) : undefined;
+
+  runViteCommand(command, { port }).catch(console.error);
+}
+
+// Export all
+export default { viteBuild, viteDevServer, ViteManager, runViteCommand };

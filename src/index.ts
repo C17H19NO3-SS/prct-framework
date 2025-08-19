@@ -1,17 +1,17 @@
 import chalk from "chalk";
 import path from "path";
-import { Elysia, file } from "elysia";
-import { CreateCache, SetupBuilder } from "./Builder/Builder";
+import { Elysia } from "elysia";
 import { redis } from "bun";
 import { readFileSync } from "fs";
 import { ApiEndpoint } from "./Api";
 import { ErrorPages } from "./Controllers/ErrorPages";
 import { staticPlugin } from "@elysiajs/static";
 import type { Server } from "elysia/universal/server";
+import { runViteCommand } from "./Builder/Builder";
 
-// Initialize cache (SSR + bundle generation)
-CreateCache();
-SetupBuilder();
+runViteCommand(
+  process.env.PRCT_ENVIRONMENT === "development" ? "dev" : "build"
+);
 
 /**
  * Main server configuration
@@ -26,6 +26,18 @@ new Elysia()
         {
           headers: {
             "Content-Type": "text/javascript",
+          },
+        }
+      )
+  )
+  .get(
+    "/assets/react.css",
+    () =>
+      new Response(
+        readFileSync(path.join(process.cwd(), "build", "react.css")),
+        {
+          headers: {
+            "Content-Type": "text/css",
           },
         }
       )
