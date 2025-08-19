@@ -109,64 +109,6 @@ export async function viteDevServer(
   }
 }
 
-// =============================================================================
-// CLASS YAKLAŞIMI (OPSİYONEL)
-// =============================================================================
-
-/**
- * Vite işlemlerini yöneten ana sınıf
- */
-export class ViteManager {
-  private defaultOptions: ViteOptions;
-  private devServer?: ViteDevServer;
-
-  constructor(defaultOptions: ViteOptions = {}) {
-    this.defaultOptions = {
-      root: process.cwd(),
-      mode: "development",
-      base: "/",
-      publicDir: "public",
-      ...defaultOptions,
-    };
-  }
-
-  /**
-   * Build işlemini başlatır
-   */
-  async build(customOptions: ViteOptions = {}): Promise<void> {
-    const options = { ...this.defaultOptions, ...customOptions };
-    await viteBuild(options);
-  }
-
-  /**
-   * Development server'ını başlatır
-   */
-  async startDevServer(
-    customOptions: DevServerOptions = {}
-  ): Promise<ViteDevServer> {
-    const options = { ...this.defaultOptions, ...customOptions };
-    this.devServer = await viteDevServer(options);
-    return this.devServer;
-  }
-
-  /**
-   * Development server'ını durdurur
-   */
-  async stopDevServer(): Promise<void> {
-    if (this.devServer) {
-      await this.devServer.close();
-      console.log("🛑 Development server durduruldu");
-    }
-  }
-
-  /**
-   * Server'ın çalışıp çalışmadığını kontrol eder
-   */
-  isDevServerRunning(): boolean {
-    return !!this.devServer && !!this.devServer.httpServer?.listening;
-  }
-}
-
 /**
  * Komut satırından kullanım için yardımcı fonksiyon
  */
@@ -197,4 +139,4 @@ if (require.main === module) {
 }
 
 // Export all
-export default { viteBuild, viteDevServer, ViteManager, runViteCommand };
+export default { viteBuild, viteDevServer, runViteCommand };

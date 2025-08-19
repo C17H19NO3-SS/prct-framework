@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
 body {
-  @apply bg-red-500;
+  @apply bg-yellow-500;
 }
+ 
