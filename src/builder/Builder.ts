@@ -1,5 +1,6 @@
 import { build, createServer, type ViteDevServer } from "vite";
 import path from "path";
+import chalk from "chalk";
 
 // =============================================================================
 // TİP TANIMLARI
@@ -40,7 +41,10 @@ interface DevServerOptions extends ViteOptions {
  */
 export async function viteBuild(options: ViteOptions = {}): Promise<void> {
   try {
-    console.log("🔨 Build işlemi başlatılıyor...");
+    console.log(
+      chalk.green`-----------------------------------------------------------`
+    );
+    console.log(chalk.green`🔨 Build process is starting...`);
 
     const buildConfig = {
       root: options.root || path.join(process.cwd(), "Views"),
@@ -61,9 +65,12 @@ export async function viteBuild(options: ViteOptions = {}): Promise<void> {
     };
 
     await build(buildConfig);
-    console.log("✅ Build işlemi başarıyla tamamlandı!");
+    console.log(chalk.green`✅ The build process was successfully completed.!`);
+    console.log(
+      chalk.green`-----------------------------------------------------------`
+    );
   } catch (error) {
-    console.error("❌ Build işlemi sırasında hata:", error);
+    console.error("❌ Error during build process:", error);
     process.exit(1);
   }
 }
@@ -77,7 +84,7 @@ export async function viteDevServer(
   options: DevServerOptions = {}
 ): Promise<ViteDevServer> {
   try {
-    console.log("🚀 Development server başlatılıyor...");
+    console.log("🚀 Development server is starting...");
 
     const serverConfig = {
       root: options.root || path.join(process.cwd(), "Views"),
@@ -100,12 +107,12 @@ export async function viteDevServer(
     await server.listen();
 
     const info = server.config.logger.info;
-    info(`\n  🎉 Development server hazır!`);
+    info(`\n  🎉 Development server ready!`);
     info(`  ➜  Local:   http://localhost:${server.config.server.port}/`);
 
     return server;
   } catch (error) {
-    console.error("❌ Development server başlatılırken hata:", error);
+    console.error("❌ Error while starting development server:", error);
     process.exit(1);
   }
 }
@@ -123,7 +130,7 @@ export async function runVite(command: "dev" | "build", options: any = {}) {
       break;
     default:
       console.error(
-        `Geçersiz komut: ${command}. Kullanılabilir komutlar: dev, build`
+        `Geçersiz komut: ${command}. Available commands: dev, build`
       );
   }
 }

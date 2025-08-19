@@ -7,14 +7,14 @@ import {
 } from "react-router";
 import { DefaultPage } from "./Pages/home";
 
+export const routes = [
+  {
+    path: "/",
+    element: <DefaultPage />,
+    index: true,
+  },
+];
+
 createRoot(document.getElementById("root")!).render(
-  <RouterProvider
-    router={createMemoryRouter([
-      {
-        path: "/",
-        element: <DefaultPage />,
-        index: true,
-      },
-    ])}
-  />
+  <RouterProvider router={createMemoryRouter(routes)} />
 );
