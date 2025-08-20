@@ -2,27 +2,33 @@ import chalk from "chalk";
 import staticPlugin from "@elysiajs/static";
 import fs from "fs";
 import path from "path";
+import Bun from "bun";
 import { routes } from "../../Views/src/main.tsx";
 import { ApiEndpoint } from "../Api";
 import { ErrorPages } from "../Controllers/ErrorPages";
 import type { Server } from "elysia/universal";
 import type Elysia from "elysia";
 
+const indexHtml = Bun.gzipSync(
+  fs
+    .readFileSync(path.join(process.cwd(), "react-build", "index.html"))
+    .toString(),
+  {
+    level: 9,
+  }
+);
+
 export const InitWebServer = (app: Elysia): void => {
   routes.forEach(({ path: p }) => {
     app.get(
       p,
       () =>
-        new Response(
-          fs
-            .readFileSync(path.join(process.cwd(), "react-build", "index.html"))
-            .toString(),
-          {
-            headers: {
-              "Content-Type": "text/html",
-            },
-          }
-        )
+        new Response(indexHtml, {
+          headers: {
+            "Content-Type": "text/html",
+            "Content-Encoding": "gzip",
+          },
+        })
     );
   });
 
