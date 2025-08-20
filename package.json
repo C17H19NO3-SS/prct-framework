@@ -2,6 +2,7 @@
   "name": "swagger-apiclient",
   "module": "index.ts",
   "type": "module",
+  "version": "0.0.1-beta",
   "private": true,
   "devDependencies": {
     "@types/bun": "latest",
