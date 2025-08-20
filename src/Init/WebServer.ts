@@ -1,11 +1,31 @@
+import chalk from "chalk";
 import staticPlugin from "@elysiajs/static";
-import type Elysia from "elysia";
+import fs from "fs";
+import path from "path";
+import { routes } from "../../Views/src/main.tsx";
 import { ApiEndpoint } from "../Api";
 import { ErrorPages } from "../Controllers/ErrorPages";
 import type { Server } from "elysia/universal";
-import chalk from "chalk";
+import type Elysia from "elysia";
 
 export const InitWebServer = (app: Elysia): void => {
+  routes.forEach(({ path: p }) => {
+    app.get(
+      p,
+      () =>
+        new Response(
+          fs
+            .readFileSync(path.join(process.cwd(), "react-build", "index.html"))
+            .toString(),
+          {
+            headers: {
+              "Content-Type": "text/html",
+            },
+          }
+        )
+    );
+  });
+
   // Serve static files under /build
   app
     .use(

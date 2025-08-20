@@ -15,6 +15,7 @@ export const routes = [
   },
 ];
 
-createRoot(document.getElementById("root")!).render(
-  <RouterProvider router={createMemoryRouter(routes)} />
-);
+if (typeof document !== "undefined")
+  createRoot(document.getElementById("root")!).render(
+    <RouterProvider router={createMemoryRouter(routes)} />
+  );
