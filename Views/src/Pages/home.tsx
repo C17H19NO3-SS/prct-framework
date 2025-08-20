@@ -6,9 +6,9 @@ export const DefaultPage = () => {
   return (
     <div className="app" role="main">
       <article className="app-article">
-        <img src="/bunlogo.svg" className="app-logo" alt="logo" />
+        <img src="/logo.png" className="app-logo" alt="logo" />
         <div className="break-0" />
-        <h3>Welcome to Prct!</h3>
+        <h3>Welcome to VRP!</h3>
         <div className="break-1"></div>
         <Counter />
       </article>

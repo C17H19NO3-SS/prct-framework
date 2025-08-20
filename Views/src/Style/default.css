@@ -9,7 +9,7 @@
 }
 
 .app-logo {
-  @apply w-16 h-16 mx-auto mb-8;
+  @apply w-64 h-64 mx-auto;
 }
 
 .app-link {
